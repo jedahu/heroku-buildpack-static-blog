@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# bin/release <build-dir>
+
+cat <<EOF
+---
+config_vars:
+  PATH: /usr/local/bin:/usr/bin:/bin
+default_process_types:
+  web: erb conf/nginx.conf.erb > conf/nginx.conf && mkdir -p logs && touch logs/access.log logs/error.log && (tail -f -n 0 logs/*.log &) && bin/nginx -p .
+EOF
