@@ -4,7 +4,7 @@
 set -e
 
 # config
-NGINX_VERSION="1.0.11"
+NGINX_VERSION="1.0.12"
 S3_BUCKET="essh-heroku-buildpack-nginx"
 
 # parse and derive params
