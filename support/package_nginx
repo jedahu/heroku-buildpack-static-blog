@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -e
+
+nginx_version="$1"
+pcre_version="$2"
+
+if [ -z "$nginx_version" -o -z "$pcre_version" ]; then
+  echo "usage: $0 NGINX_VERSION PCRE_VERSION"
+  exit 1
+fi
+
+if [ -z "$AWS_ID" ]; then
+  echo "must set AWS_ID"
+  exit 1
+fi
+
+if [ -z "$AWS_SECRET" ]; then
+  echo "must set AWS_SECRET"
+  exit 1
+fi
+
+if [ -z "$S3_BUCKET" ]; then
+  echo "must set S3_BUCKET"
+  exit 1
+fi
+
+basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+
+# make a temp directory
+tempdir=$(mktemp -d -t nginx.XXXXXX)
+pushd $tempdir
+
+curl http://nginx.org/download/nginx-${nginx_version}.tar.gz -o nginx.tgz
+tar xzf nginx.tgz
+
+curl ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${pcre_version}.tar.gz -o pcre.tgz
+tar xzf pcre.tgz
+
+# build and package nginx for heroku
+vulcan build -v -n nginx -o $tempdir/nginx-${nginx_version}.tgz -c "cd nginx-${nginx_version} && ./configure --prefix=/app/vendor/nginx --with-pcre=../pcre-${pcre_version} --with-http_stub_status_module --with-http_gzip_static_module --with-http_realip_module && make install"
+
+# upload nginx to s3
+$basedir/aws/s3 put $S3_BUCKET \
+  nginx-${nginx_version}.tgz $tempdir/nginx-${nginx_version}.tgz
