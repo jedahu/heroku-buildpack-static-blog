@@ -39,8 +39,12 @@ EOF
 chmod +x "$BUILD_DIR/bin/start_nginx"
 
 echo '-----> Running __sb/build'
+if [ -f "$2/saxon9he.jar" ]; then
+  cp "$2/saxon9he.jar" "$1/__sb/"
+fi
 chmod +x "$1/__sb/build"
 (find "$1" -name \*.sb | "$1/__sb/build" "$1") || exit 1
+cp "$1/__sb/saxon9he.jar" "$2/"
 
 local="$1/bin/compile"
 if [ -f "$local" ]; then
